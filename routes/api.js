@@ -1,6 +1,8 @@
 var express = require("express");
 var router = express.Router();
 
+const stripe = require("stripe")(process.env.STRIPE_API_KEY);
+
 router.get("/v1/auth/session", (req, res, next) => {
   res.send({
     user: {
@@ -59,59 +61,92 @@ router.post("/v1/auth/create-guest-session", (req, res, next) => {
   });
 });
 
-router.post("/v1/plugin/stripe/create-payment-intent", (req, res, next) => {
-  res.send({
-    clientSecret:
-      "pi_3Oc1zAAlUKnrAXrl0ZTZyiTP_secret_a6G2XRr3uy1IIuWYmKNAzToi9",
-    paymentIntentId: "pi_3Oc1zAAlUKnrAXrl0ZTZyiTP",
-    saleId: "65b0cca9b8869ad3ab031fab",
-    transactionId: "65b0cca9b8869ad3ab031fac",
-    order: {
-      cancelled: false,
-      clientAccepted: true,
-      confirmed: false,
-      createdAt: "2024-01-24T08:39:05.133Z",
-      currency: "GBP",
-      currentStep: 1,
-      deleted: false,
-      delivered: false,
-      devAccepted: false,
-      hasDesign: false,
-      items: [
-        {
-          approvedForMarketplace: false,
-          business: "659c1cd4edf2c3267c57f43b",
-          category: "hoodies",
-          description: "hoodie with your own design on it",
-          img: "uploads/white-hoodie.png",
-          name: "hoodie",
-          price: 500,
-          quantity: 1,
-          _id: "659c29f8c1ae562ac68145ac",
-        },
-        {
-          approvedForMarketplace: false,
-          business: "655dc6a4899de08a03c26035",
-          category: "hoodies",
-          description: "Hoodie",
-          img: "/static/media/white-hoodie.7957a8f65afebfbbc5f9.png",
-          name: "Hoodie1",
-          price: 500,
-          quantity: 1,
-          _id: "0003",
-        },
-      ],
-      messages: [],
-      paymentIntents: [],
-      paymentSteps: 5,
-      quoting: false,
-      refunded: false,
-      status: "processing",
-      totalAmount: 1000,
-      updatesCount: 0,
-      _id: "65b0cca9b8869ad3ab031fad",
-    },
-  });
+router.post(
+  "/v1/plugin/stripe/create-payment-intent",
+  async (req, res, next) => {
+    const { items, currency } = req.body;
+
+    const calculateOrderAmount = (items) => {
+      // Replace this constant with a calculation of the order's amount
+      // Calculate the order total on the server to prevent
+      // people from directly manipulating the amount on the client
+      let totAmount = 0;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        totAmount += item.price * item.quantity;
+      }
+      return totAmount;
+    };
+
+    const totalAmount = calculateOrderAmount(items);
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmount,
+      currency,
+      // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntent: paymentIntent,
+      saleId: "65b0cca9b8869ad3ab031fab",
+      transactionId: "65b0cca9b8869ad3ab031fac",
+      order: {
+        cancelled: false,
+        clientAccepted: true,
+        confirmed: false,
+        createdAt: "2024-01-24T08:39:05.133Z",
+        currency: "GBP",
+        currentStep: 1,
+        deleted: false,
+        delivered: false,
+        devAccepted: false,
+        hasDesign: false,
+        items: [
+          {
+            approvedForMarketplace: false,
+            business: "659c1cd4edf2c3267c57f43b",
+            category: "hoodies",
+            description: "hoodie with your own design on it",
+            img: "uploads/white-hoodie.png",
+            name: "hoodie",
+            price: 500,
+            quantity: 1,
+            _id: "659c29f8c1ae562ac68145ac",
+          },
+          {
+            approvedForMarketplace: false,
+            business: "655dc6a4899de08a03c26035",
+            category: "hoodies",
+            description: "Hoodie",
+            img: "/static/media/white-hoodie.7957a8f65afebfbbc5f9.png",
+            name: "Hoodie1",
+            price: 500,
+            quantity: 1,
+            _id: "0003",
+          },
+        ],
+        messages: [],
+        paymentIntents: [],
+        paymentSteps: 5,
+        quoting: false,
+        refunded: false,
+        status: "processing",
+        totalAmount: 1000,
+        updatesCount: 0,
+        _id: "65b0cca9b8869ad3ab031fad",
+      },
+    });
+  }
+);
+
+router.post("/v1/plugin/stripe/confirm-payment-intent", async (req, res) => {
+  const { paymentIntentId } = req.body;
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  console.log(paymentIntent);
+  return res.status(200).json({ paymentIntent });
 });
 
 module.exports = router;
