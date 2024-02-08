@@ -1,7 +1,35 @@
 var express = require("express");
+const multer = require("multer");
+const path = require("path");
 var router = express.Router();
 
 const stripe = require("stripe")(process.env.STRIPE_API_KEY);
+
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, "uploads/");
+  },
+  filename: (req, file, callback) => {
+    callback(null, file.originalname);
+  },
+});
+const imageFileFilter = (req, file, callback) => {
+  const allowedFileTypes = /jpeg|jpg|png/; // Add other image file extensions as needed
+  const mimeType = allowedFileTypes.test(file.mimetype);
+  const extname = allowedFileTypes.test(
+    path.extname(file.originalname).toLowerCase()
+  );
+
+  if (mimeType && extname) {
+    return callback(null, true);
+  }
+
+  const error = new Error("Only image files are allowed!");
+  error.status = 500;
+  return callback(error);
+};
+
+const upload = multer({ storage: storage, fileFilter: imageFileFilter });
 
 router.get("/v1/auth/session", (req, res, next) => {
   res.send({
@@ -147,6 +175,50 @@ router.post("/v1/plugin/stripe/confirm-payment-intent", async (req, res) => {
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
   console.log(paymentIntent);
   return res.status(200).json({ paymentIntent });
+});
+
+router.get("/v1/all-inventory", async (req, res) => {
+  let inventoryItems = [
+    {
+      approvedForMarketplace: false,
+      business: "65ba870ad7824794a182d01d",
+      category: "T-shirts",
+      description: "t-shirts with your own design on it",
+      img: "uploads/shirt-front.png",
+      name: "T-shirt",
+      price: 1500,
+      quantity: 10,
+      _id: "65ba87d4d7824794a182d041",
+    },
+    {
+      approvedForMarketplace: false,
+      business: "65ba870ad7824794a182d01d",
+      category: "T-shirts",
+      description: "Polo with your design on it",
+      img: "uploads/white_polo_shirt_front_nobg.png",
+      name: "Polo",
+      price: 2500,
+      quantity: 10,
+      _id: "65bb65d2a382a692420a6233",
+    },
+  ];
+  res.send({ inventoryItems });
+});
+
+router.post("/v1/upload-file", upload.single("file"), async (req, res) => {
+  try {
+    console.log(req.file, req.body);
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file provided" });
+    }
+
+    console.log(req.file.path);
+    res.json({ file: req.file.path });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error });
+  }
 });
 
 module.exports = router;
