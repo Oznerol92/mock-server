@@ -181,25 +181,98 @@ router.get("/v1/all-inventory", async (req, res) => {
   let inventoryItems = [
     {
       approvedForMarketplace: false,
-      business: "65ba870ad7824794a182d01d",
-      category: "T-shirts",
-      description: "t-shirts with your own design on it",
-      img: "uploads/shirt-front.png",
-      name: "T-shirt",
-      price: 1500,
-      quantity: 10,
-      _id: "65ba87d4d7824794a182d041",
+      business: "66155ccd04bbee9c32f4fbc6",
+      category: "cameras",
+      currency: "gbp",
+      customItems: [],
+      description: "camera",
+      img: "",
+      imgs: ["uploads/camera2.jpg", "uploads/camera3.jpg"],
+      name: "camera",
+      price: 25000,
+      totQuantity: 8,
+      _id: "6683e1286bf236800f669734",
     },
     {
       approvedForMarketplace: false,
-      business: "65ba870ad7824794a182d01d",
-      category: "T-shirts",
-      description: "Polo with your design on it",
-      img: "uploads/white_polo_shirt_front_nobg.png",
-      name: "Polo",
+      business: "66155ccd04bbee9c32f4fbc6",
+      category: "t-shirts",
+      currency: "gbp",
+      customItems: [
+        {
+          colour: "Red",
+          customImages: [
+            {
+              designArea: {
+                front: {
+                  height: "80.36072144288578",
+                  left: "18.40277777777778",
+                  top: "15.988226452905813",
+                  width: "61.57407407407407",
+                },
+              },
+              name: "front",
+              url: "uploads/black-polo-front.png",
+              _id: "668fff87d8692676b9cda3dd",
+            },
+            {
+              designArea: {
+                back: {
+                  height: "79.96031746031747",
+                  left: "24.189814814814813",
+                  top: "13.59126984126984",
+                  width: "50.69444444444444",
+                },
+              },
+              name: "back",
+              url: "uploads/black-polo-back.png",
+              _id: "668fff87d8692676b9cda3de",
+            },
+            {
+              designArea: {
+                right: {
+                  height: "40.869565217391305",
+                  left: "26.041666666666668",
+                  top: "35.11888586956522",
+                  width: "35.18518518518518",
+                },
+              },
+              name: "right",
+              url: "uploads/black-polo-right.png",
+              _id: "668fff87d8692676b9cda3df",
+            },
+            {
+              designArea: {
+                left: {
+                  height: "41.30434782608695",
+                  left: "38.54166666666667",
+                  top: "35.33627717391305",
+                  width: "38.657407407407405",
+                },
+              },
+              name: "left",
+              url: "uploads/black-polo-left.png",
+              _id: "668fff87d8692676b9cda3e0",
+            },
+          ],
+          sizes: [
+            {
+              quantity: 312,
+              size: "XS",
+              _id: "668fff87d8692676b9cda3dc",
+            },
+            { size: "M", quantity: 10, _id: "669f618f617dbec65239d45f" },
+          ],
+          _id: "668fff87d8692676b9cda3db",
+        },
+      ],
+      description: "polo",
+      img: "",
+      imgs: ["uploads/t-shirts.jpeg"],
+      name: "polo",
       price: 2500,
-      quantity: 10,
-      _id: "65bb65d2a382a692420a6233",
+      totQuantity: 399,
+      _id: "668fff86d8692676b9cda3d2",
     },
   ];
   res.send({ inventoryItems });
